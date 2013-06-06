@@ -75,7 +75,7 @@ public class SelectionModifier extends SignalModifier {
             int sign = oRandom.nextDouble() > 0.5 ? 1 : -1;
             scaledValue += sign * (oRandom.nextDouble() * variance);
             
-            if (fstVal <= scaledValue){
+            if ((fstVal <= scaledValue) && (oRandom.nextDouble() < 0.5)){
                fstVal = scaledValue;
                count ++;
             }

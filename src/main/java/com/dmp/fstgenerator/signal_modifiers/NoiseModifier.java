@@ -13,7 +13,8 @@ import java.util.Random;
  *
  * @author pdemartino
  */
-public class NoiseModifier extends SignalModifier{
+public class NoiseModifier extends SignalModifier {
+
    private Random oRandom = new Random();
    private float noiseRate = 0.07f;
    private double variance = 0.08;
@@ -21,43 +22,34 @@ public class NoiseModifier extends SignalModifier{
    @Override
    public Signal apply(Signal signal) {
       Signal outSignal = new Signal();
-      
+
       double minVal = signal.getMinVal();
       double maxVal = signal.getMaxVal();
       int count = 0;
-      for (Signal component : signal){
+      for (Signal component : signal) {
          double value = component.getValue();
-         if (oRandom.nextFloat() < noiseRate){
+         if (oRandom.nextFloat() < noiseRate) {
             count++;
-            value = maxVal;
-            double deviation = variance * oRandom.nextDouble();
-            if (oRandom.nextDouble() > 0.5){
-               deviation *= -1;
-            }
-            value += deviation;
-                    
+            value = minVal + (maxVal * oRandom.nextDouble());
          }
-         outSignal.addComponent(new Signal(component.getTime(),value));
+         outSignal.addComponent(new Signal(component.getTime(), value));
       }
       System.out.println("Noised: " + count);
-      
+
       return outSignal;
    }
-   
-   
-   
+
    @Override
-   public void setOptions(ModifierOptions options) throws WrongOptionsException{
+   public void setOptions(ModifierOptions options) throws WrongOptionsException {
       super.setOptions(options);
-      if (options.getOption("noiseRate")!=null){
-         noiseRate = ((Float)options.getOption("noiseRate")).floatValue();
+      if (options.getOption("noiseRate") != null) {
+         noiseRate = ((Float) options.getOption("noiseRate")).floatValue();
       }
-      
-      if (options.getOption("variance") != null){
-         variance = ((Double)options.getOption("variance")).doubleValue();
+
+      if (options.getOption("variance") != null) {
+         variance = ((Double) options.getOption("variance")).doubleValue();
       }
-      
-      
+
+
    }
-   
 }

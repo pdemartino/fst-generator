@@ -22,12 +22,12 @@ public class App {
          setOption("numberOfSnps",
                  Integer.parseInt(
                  System.getProperty("numberOfSnps") != null
-                 ? System.getProperty("numberOfSnps") : "1000"));
+                 ? System.getProperty("numberOfSnps") : "10000"));
 
          setOption("selectionPosition",
                  Double.parseDouble(
                  System.getProperty("selectionPosition") != null
-                 ? System.getProperty("selectionPosition") : "0.5"));
+                 ? System.getProperty("selectionPosition") : "0.2"));
 
          setOption("selectionFstValue",
                  Double.parseDouble(
@@ -47,7 +47,7 @@ public class App {
          setOption("noiseRate",
                  Float.parseFloat(
                  System.getProperty("noiseRate") != null
-                 ? System.getProperty("noiseRate") : "0.07"));
+                 ? System.getProperty("noiseRate") : "0.1"));
 
 
       }
@@ -60,7 +60,7 @@ public class App {
            ? Boolean.getBoolean(System.getProperty("applyNoise")) : true;
    static String outputCsvFile =
            System.getProperty("outputCsvFile") != null
-           ? System.getProperty("outputCsvFile") : "./signal.csv";
+           ? System.getProperty("outputCsvFile") : "/tmp/signal.csv";
 
    public static void main(String[] args) throws WrongOptionsException, IOException {
       if (args.length > 0 && args[0].equalsIgnoreCase("--help")){
