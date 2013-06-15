@@ -16,7 +16,7 @@ public class SelectionModifier extends SignalModifier {
 
    private Random oRandom = new Random();
    private double selectionPosition;
-   private double haplotypeHalfSize = 0.1;
+   private double haplotypeSize = 0.01;
    private double selectionFstValue = 0.3;
    private double variance = 0.086;
 
@@ -55,31 +55,32 @@ public class SelectionModifier extends SignalModifier {
       double maxDistance = distanceFactors.get("maxDistance");
 
       int count = 0;
-      double normalizedHaplotypeHalfSize = (maxDistance - minDistance) * haplotypeHalfSize;
+      double haplotypeHalfSize = haplotypeSize / 2;
       for (Signal component : inputSignal) {
          double fstVal = component.getValue();
          double distance = Math.abs(component.getTime() - selectionPosition);
+         // it lays between 0 and 1
+         double normalizedDistance = SAMath.minMaxNormalization(distance, minDistance, maxDistance);
          
-
-         
-        // if (distance <= normalizedHaplotypeHalfSize) {
+         if (normalizedDistance <= haplotypeHalfSize) {
             double scaledValue = selectionFstValue;
-            double normalizedDistance = SAMath.minMaxNormalization(distance, minDistance, maxDistance);
+            
 
             // apply scaling factor based on distance from selected SNP
             //double scalingFactor = Math.pow(1 - SAMath.minMaxNormalization(distance, minDistance, maxDistance), 4);
             double scalingFactor = Math.pow(1 - normalizedDistance,64);
+            scalingFactor =  (1 - normalizedDistance) * oRandom.nextDouble();
             scaledValue *= scalingFactor;
 
             // apply deviation
             int sign = oRandom.nextDouble() > 0.5 ? 1 : -1;
-            scaledValue += sign * (oRandom.nextDouble() * variance);
+            //scaledValue += sign * (oRandom.nextDouble());
             
             if ((fstVal <= scaledValue) && (oRandom.nextDouble() < 0.5)){
                fstVal = scaledValue;
                count ++;
             }
-         //}
+         }
 
          scaledSignal.addComponent(new Signal(component.getTime(), fstVal));
 
@@ -115,21 +116,21 @@ public class SelectionModifier extends SignalModifier {
       super.setOptions(options);
 
       if (options.getOption("selectionPosition") != null) {
-         this.selectionPosition = ((Double) options.getOption("selectionPosition"));
+         this.selectionPosition = Double.valueOf(options.getOption("selectionPosition"));
       } else {
          throw new WrongOptionsException("Missing Option: selectionPosition:Integer");
       }
 
       if (options.getOption("selectionFstValue") != null) {
-         this.selectionFstValue = ((Double) options.getOption("selectionFstValue"));
+         this.selectionFstValue = Double.valueOf(options.getOption("selectionFstValue"));
       }
 
       if (options.getOption("variance") != null) {
-         variance = ((Double) options.getOption("variance")).doubleValue();
+         variance = Double.valueOf(options.getOption("variance"));
       }
       
-      if (options.getOption("haplotypeHalfSize") != null) {
-         haplotypeHalfSize = ((Double) options.getOption("haplotypeHalfSize")).doubleValue();
+      if (options.getOption("haplotypeSize") != null) {
+         haplotypeSize = Double.valueOf(options.getOption("haplotypeSize"));
       }
 
    }

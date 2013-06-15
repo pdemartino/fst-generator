@@ -12,13 +12,13 @@ import java.util.Map;
  * @author pdemartino
  */
 public class ModifierOptions {
-   private Map<String,Object> options = new HashMap<String, Object>();
+   private Map<String,String> options = new HashMap<String, String>();
    
-   public void setOption(String name, Object value){
+   public void setOption(String name, String value){
       this.options.put(name.toLowerCase(), value);
    }
    
-   public Object getOption(String name){
+   public String getOption(String name){
       return this.options.get(name.toLowerCase());
    }
    

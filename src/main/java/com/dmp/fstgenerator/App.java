@@ -19,35 +19,29 @@ public class App {
 
    static ModifierOptions options = new ModifierOptions() {
       {
-         setOption("numberOfSnps",
-                 Integer.parseInt(
-                 System.getProperty("numberOfSnps") != null
-                 ? System.getProperty("numberOfSnps") : "10000"));
+         setOption("numberOfBases",
+                 System.getProperty("numberOfBases") != null
+                 ? System.getProperty("numberOfBases") : "100E+6");
 
          setOption("selectionPosition",
-                 Double.parseDouble(
                  System.getProperty("selectionPosition") != null
-                 ? System.getProperty("selectionPosition") : "0.2"));
+                 ? System.getProperty("selectionPosition") : "0.5");
 
          setOption("selectionFstValue",
-                 Double.parseDouble(
                  System.getProperty("selectionFstValue") != null
-                 ? System.getProperty("selectionFstValue") : "0.5"));
+                 ? System.getProperty("selectionFstValue") : "0.3");
 
-         setOption("backgroundFst",
-                 Double.parseDouble(
-                 System.getProperty("backgroundFst") != null
-                 ? System.getProperty("backgroundFst") : "0.1"));
+         setOption("haplotypeSize",
+                 System.getProperty("haplotypeSize") != null
+                 ? System.getProperty("haplotypeSize") : "0.01");
 
          setOption("variance",
-                 Double.parseDouble(
                  System.getProperty("variance") != null
-                 ? System.getProperty("variance") : "0.1"));
+                 ? System.getProperty("variance") : "0.1");
 
          setOption("noiseRate",
-                 Float.parseFloat(
                  System.getProperty("noiseRate") != null
-                 ? System.getProperty("noiseRate") : "0.1"));
+                 ? System.getProperty("noiseRate") : "0.1");
 
 
       }
@@ -57,17 +51,17 @@ public class App {
            ? Boolean.getBoolean(System.getProperty("applySelection")) : true;
    static boolean applyNoise =
            System.getProperty("applyNoise") != null
-           ? Boolean.getBoolean(System.getProperty("applyNoise")) : true;
+           ? Boolean.getBoolean(System.getProperty("applyNoise")) : false;
    static String outputCsvFile =
            System.getProperty("outputCsvFile") != null
            ? System.getProperty("outputCsvFile") : "/tmp/signal.csv";
 
    public static void main(String[] args) throws WrongOptionsException, IOException {
-      if (args.length > 0 && args[0].equalsIgnoreCase("--help")){
+      if (args.length > 0 && args[0].equalsIgnoreCase("--help")) {
          showHelp();
          System.exit(0);
       }
-      
+
       Signal signal = applyNeutralModifier();
       if (applySelection) {
          signal = applySelectionModifier(signal);
@@ -115,25 +109,22 @@ public class App {
 
       writer.close();
    }
-   
-   
-   private static void showHelp(){
+
+   private static void showHelp() {
       System.out.println("These properties are settable: ");
-      
+
       System.out.println("\tBase properties:");
-      System.out.println("\t\tnumberOfSnps:Integer - def=" + options.getOption("numberOfSnps"));
-      System.out.println("\t\tbackgroundFst:Double - def="+ options.getOption("backgroundFst"));
-      System.out.println("\t\tvariance:Double - def="+ options.getOption("variance"));
-      
-      System.out.println("\tSelection properties (use applySelection): - def="+ applySelection);
-      System.out.println("\t\tselectionPosition:Double (Relative position) - def="+ options.getOption("selectionPosition"));
-      System.out.println("\t\tselectionFstValue:Double (Selected SNP Fst value) - def="+ options.getOption("selectionFstValue"));
-      
-      System.out.println("\tNoise properties (use applyNoise) - def="+ applyNoise);
-      System.out.println("\t\tnoiseRate:Double (SNPs affected by noise: 0..1) - def="+ options.getOption("noiseRate"));
-      
+      System.out.println("\t\tnumberOfBases:Integer - def=" + options.getOption("numberOfBases"));
+
+      System.out.println("\tSelection properties (use applySelection): - def=" + applySelection);
+      System.out.println("\t\tselectionPosition:Double(0->1) (Relative position) - def=" + options.getOption("selectionPosition"));
+      System.out.println("\t\tselectionFstValue:Double(0->1) (Selected SNP Fst value) - def=" + options.getOption("selectionFstValue"));
+      System.out.println("\t\thaplotypeSize:Double(0->1) (Max rate num of bases affected by selection) - def=" + options.getOption("haplotypeSize"));
+
+      System.out.println("\tNoise properties (use applyNoise) - def=" + applyNoise);
+      System.out.println("\t\tnoiseRate:Double(0->1) (SNPs affected by noise) - def=" + options.getOption("noiseRate"));
+
       System.out.println("\tOutput properties:");
-      System.out.println("\t\toutputCsvFile:String - def="+ outputCsvFile);
+      System.out.println("\t\toutputCsvFile:String - def=" + outputCsvFile);
    }
-    
 }

@@ -17,7 +17,6 @@ public class NoiseModifier extends SignalModifier {
 
    private Random oRandom = new Random();
    private float noiseRate = 0.07f;
-   private double variance = 0.08;
 
    @Override
    public Signal apply(Signal signal) {
@@ -43,13 +42,7 @@ public class NoiseModifier extends SignalModifier {
    public void setOptions(ModifierOptions options) throws WrongOptionsException {
       super.setOptions(options);
       if (options.getOption("noiseRate") != null) {
-         noiseRate = ((Float) options.getOption("noiseRate")).floatValue();
+         noiseRate = Float.valueOf(options.getOption("noiseRate"));
       }
-
-      if (options.getOption("variance") != null) {
-         variance = ((Double) options.getOption("variance")).doubleValue();
-      }
-
-
    }
 }
