@@ -1,12 +1,11 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package com.dmp.fstgenerator.signal_modifiers;
 
 import com.dmp.fstgenerator.signal.Signal;
 import com.dmp.fstgenerator.signal_modifiers.options.ModifierOptions;
 import com.dmp.fstgenerator.signal_modifiers.options.WrongOptionsException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.Random;
 
 public class NeutralSignalModifier extends SignalModifier {
@@ -37,22 +36,32 @@ public class NeutralSignalModifier extends SignalModifier {
     *
     * @return
     */
-   private int distance() {
-      int rand = oRandom.nextInt(100);
+   private static LinkedList<ArrayList<Integer>> distancePercentile = 
+           new LinkedList<ArrayList<Integer>> () {{
+              // percentileIndex, minDistance, maxDistanceOffset
+              add(new ArrayList<Integer>(Arrays.asList(30,0,210)));
+              add(new ArrayList<Integer>(Arrays.asList(50,200,250)));
+              add(new ArrayList<Integer>(Arrays.asList(90,500,1200)));
+              add(new ArrayList<Integer>(Arrays.asList(95,2250,1500)));
+              add(new ArrayList<Integer>(Arrays.asList(99,3000,3500)));
+              add(new ArrayList<Integer>(Arrays.asList(100,6000,140000)));
+           }};
 
-      if (rand <= 30) {
-         return oRandom.nextInt(210);
-      } else if (rand <= 50) {
-         return 200 + oRandom.nextInt(250);
-      } else if (rand <= 90) {
-         return 500 + oRandom.nextInt(1700);
-      } else if (rand <= 95){
-         return 2250 + oRandom.nextInt(1200);
-      }else if (rand <= 99){
-         return 3000 + oRandom.nextInt(3500);
-      }else{   
-         return 6000 + oRandom.nextInt(150000);
+   private int distance() {
+      int distance = 0;
+      int rand = oRandom.nextInt(100);
+      
+      
+      
+      for (ArrayList<Integer> percentileConf : distancePercentile){
+         if (rand <= percentileConf.get(0)){
+            distance = percentileConf.get(1) 
+                    + oRandom.nextInt(percentileConf.get(2));
+            break;
+         }
       }
+      
+      return distance;
    }
 
    /**
@@ -63,7 +72,7 @@ public class NeutralSignalModifier extends SignalModifier {
     */
    private double value(double prev) {
 
-      // Condirer the previous SNP value
+      // Consirer the previous SNP value
       return oRandom.nextDouble()
               * valueMult()
               * (prev + oRandom.nextDouble());

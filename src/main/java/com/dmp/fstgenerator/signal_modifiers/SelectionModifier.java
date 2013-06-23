@@ -22,8 +22,6 @@ public class SelectionModifier extends SignalModifier {
 
    @Override
    public Signal apply(Signal signal) {
-
-
       // Insert selected SNP
       int position = snpIntegerPosition(selectionPosition, signal);
       Signal snp = signal.get(position);
@@ -34,9 +32,9 @@ public class SelectionModifier extends SignalModifier {
       } else {
          snp.setValue(selectionFstValue);
       }
-
-      // adjust all the  rest of the snps
-      return applyDistanceScalingFactor(signal, position);
+      // generate haplotype
+      signal = applyDistanceScalingFactor(signal, position);
+      return signal;
    }
 
    private static int snpIntegerPosition(double relativePosition, Signal signal) {
@@ -63,18 +61,8 @@ public class SelectionModifier extends SignalModifier {
          double normalizedDistance = SAMath.minMaxNormalization(distance, minDistance, maxDistance);
          
          if (normalizedDistance <= haplotypeHalfSize) {
-            double scaledValue = selectionFstValue;
-            
-
-            // apply scaling factor based on distance from selected SNP
-            //double scalingFactor = Math.pow(1 - SAMath.minMaxNormalization(distance, minDistance, maxDistance), 4);
-            double scalingFactor = Math.pow(1 - normalizedDistance,64);
-            scalingFactor =  (1 - normalizedDistance) * oRandom.nextDouble();
-            scaledValue *= scalingFactor;
-
-            // apply deviation
-            int sign = oRandom.nextDouble() > 0.5 ? 1 : -1;
-            //scaledValue += sign * (oRandom.nextDouble());
+            double scalingFactor =  (1 - normalizedDistance) * selectionFstValue;
+            double scaledValue = fstVal * (1 + scalingFactor);
             
             if ((fstVal <= scaledValue) && (oRandom.nextDouble() < 0.5)){
                fstVal = scaledValue;

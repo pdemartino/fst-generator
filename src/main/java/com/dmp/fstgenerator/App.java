@@ -48,10 +48,10 @@ public class App {
    };
    static boolean applySelection =
            System.getProperty("applySelection") != null
-           ? Boolean.getBoolean(System.getProperty("applySelection")) : true;
+           ? Boolean.valueOf(System.getProperty("applySelection")) : true;
    static boolean applyNoise =
            System.getProperty("applyNoise") != null
-           ? Boolean.getBoolean(System.getProperty("applyNoise")) : false;
+           ? Boolean.valueOf(System.getProperty("applyNoise")) : false;
    static String outputCsvFile =
            System.getProperty("outputCsvFile") != null
            ? System.getProperty("outputCsvFile") : "/tmp/signal.csv";
