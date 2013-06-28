@@ -1,6 +1,7 @@
 package com.dmp.fstgenerator;
 
 import com.dmp.fstgenerator.signal.Signal;
+import com.dmp.fstgenerator.utils.LoggingManager;
 import com.dmp.fstgenerator.signal_modifiers.NeutralSignalModifier;
 import com.dmp.fstgenerator.signal_modifiers.NoiseModifier;
 import com.dmp.fstgenerator.signal_modifiers.SelectionModifier;
@@ -8,6 +9,7 @@ import com.dmp.fstgenerator.signal_modifiers.SignalModifier;
 import com.dmp.fstgenerator.signal_modifiers.options.ModifierOptions;
 import com.dmp.fstgenerator.signal_modifiers.options.WrongOptionsException;
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 
@@ -52,11 +54,12 @@ public class App {
    static boolean applyNoise =
            System.getProperty("applyNoise") != null
            ? Boolean.valueOf(System.getProperty("applyNoise")) : false;
-   static String outputCsvFile =
-           System.getProperty("outputCsvFile") != null
-           ? System.getProperty("outputCsvFile") : "/tmp/signal.csv";
+   static String outputDirectory =
+           System.getProperty("outputDirectory") != null
+           ? System.getProperty("outputDirectory") : "./";
 
    public static void main(String[] args) throws WrongOptionsException, IOException {
+      LoggingManager.start(outputDirectory);
       if (args.length > 0 && args[0].equalsIgnoreCase("--help")) {
          showHelp();
          System.exit(0);
@@ -70,7 +73,8 @@ public class App {
          signal = applyNoise(signal);
       }
 
-      printToCsv(signal, outputCsvFile);
+      printToCsv(signal, outputDirectory);
+      LoggingManager.stop();
    }
 
    private static Signal applyNoise(Signal signal) throws WrongOptionsException {
@@ -96,7 +100,8 @@ public class App {
       return signal;
    }
 
-   private static void printToCsv(Signal signal, String filename) throws IOException {
+   private static void printToCsv(Signal signal, String directory) throws IOException {
+      String filename = directory + File.separator + "signal.csv";
       String delimiter = ",";
       BufferedWriter writer = new BufferedWriter(new FileWriter(filename));
 
@@ -114,17 +119,17 @@ public class App {
       System.out.println("These properties are settable: ");
 
       System.out.println("\tBase properties:");
-      System.out.println("\t\tnumberOfBases:Integer - def=" + options.getOption("numberOfBases"));
+      System.out.println("\t\tnumberOfBases (Integer) - def=" + options.getOption("numberOfBases"));
 
       System.out.println("\tSelection properties (use applySelection): - def=" + applySelection);
-      System.out.println("\t\tselectionPosition:Double(0->1) (Relative position) - def=" + options.getOption("selectionPosition"));
-      System.out.println("\t\tselectionFstValue:Double(0->1) (Selected SNP Fst value) - def=" + options.getOption("selectionFstValue"));
-      System.out.println("\t\thaplotypeSize:Double(0->1) (Max rate num of bases affected by selection) - def=" + options.getOption("haplotypeSize"));
+      System.out.println("\t\tselectionPosition (Double(0->1)) (Relative position) - def=" + options.getOption("selectionPosition"));
+      System.out.println("\t\tselectionFstValue (Double(0->1)) (Selected SNP Fst value) - def=" + options.getOption("selectionFstValue"));
+      System.out.println("\t\thaplotypeSize (Double(0->1)) (Max rate num of bases affected by selection) - def=" + options.getOption("haplotypeSize"));
 
       System.out.println("\tNoise properties (use applyNoise) - def=" + applyNoise);
-      System.out.println("\t\tnoiseRate:Double(0->1) (SNPs affected by noise) - def=" + options.getOption("noiseRate"));
+      System.out.println("\t\tnoiseRate (Double(0->1)) (SNPs affected by noise) - def=" + options.getOption("noiseRate"));
 
       System.out.println("\tOutput properties:");
-      System.out.println("\t\toutputCsvFile:String - def=" + outputCsvFile);
+      System.out.println("\t\toutputDirectory (String) - def=" + outputDirectory);
    }
 }

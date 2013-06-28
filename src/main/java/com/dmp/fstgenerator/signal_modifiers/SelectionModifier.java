@@ -1,6 +1,7 @@
 package com.dmp.fstgenerator.signal_modifiers;
 
 import com.dmp.fstgenerator.signal.Signal;
+import com.dmp.fstgenerator.utils.LoggingManager;
 import com.dmp.fstgenerator.signal_modifiers.options.ModifierOptions;
 import com.dmp.fstgenerator.signal_modifiers.options.WrongOptionsException;
 import com.dmp.fstgenerator.utils.SAMath;
@@ -16,12 +17,15 @@ public class SelectionModifier extends SignalModifier {
 
    private Random oRandom = new Random();
    private double selectionPosition;
-   private double haplotypeSize = 0.01;
+   private float haplotypeNormalizedSize = 0.01f;
    private double selectionFstValue = 0.3;
    private double variance = 0.086;
+   private long numberOfBases;
 
    @Override
    public Signal apply(Signal signal) {
+
+
       // Insert selected SNP
       int position = snpIntegerPosition(selectionPosition, signal);
       Signal snp = signal.get(position);
@@ -32,9 +36,9 @@ public class SelectionModifier extends SignalModifier {
       } else {
          snp.setValue(selectionFstValue);
       }
-      // generate haplotype
-      signal = applyDistanceScalingFactor(signal, position);
-      return signal;
+
+      // adjust all the  rest of the snps
+      return applyDistanceScalingFactor(signal, position);
    }
 
    private static int snpIntegerPosition(double relativePosition, Signal signal) {
@@ -53,21 +57,34 @@ public class SelectionModifier extends SignalModifier {
       double maxDistance = distanceFactors.get("maxDistance");
 
       int count = 0;
-      double haplotypeHalfSize = haplotypeSize / 2;
+      int haplotypeHalfSize = Math.round((haplotypeNormalizedSize * numberOfBases) / 2);
+      LoggingManager.logField("SelectionStart" , Integer.toString((selectionPosition - haplotypeHalfSize)));
+      LoggingManager.logField("SelectionStop" , Integer.toString((selectionPosition + haplotypeHalfSize)));
+      LoggingManager.logField("SelectedBases",  Integer.toString((haplotypeHalfSize * 2)));
+
+
       for (Signal component : inputSignal) {
          double fstVal = component.getValue();
          double distance = Math.abs(component.getTime() - selectionPosition);
-         // it lays between 0 and 1
-         double normalizedDistance = SAMath.minMaxNormalization(distance, minDistance, maxDistance);
          
-         if (normalizedDistance <= haplotypeHalfSize) {
-            double scalingFactor =  (1 - normalizedDistance) * selectionFstValue;
-            double scaledValue = fstVal * (1 + scalingFactor);
+         if (distance <= haplotypeHalfSize) {
+            double normalizedDistance = SAMath.minMaxNormalization(distance, minDistance, maxDistance);
+            double scaledValue = selectionFstValue;
+            
+            // apply scaling factor based on distance from selected SNP
+            //double scalingFactor = Math.pow(1 - SAMath.minMaxNormalization(distance, minDistance, maxDistance), 4);
+            double scalingFactor = Math.pow(1 - normalizedDistance,64);
+            scalingFactor =  (1 - normalizedDistance) * oRandom.nextDouble();
+            scaledValue *= scalingFactor;
+
+            // apply deviation
+            int sign = oRandom.nextDouble() > 0.5 ? 1 : -1;
+            //scaledValue += sign * (oRandom.nextDouble());
             
             if ((fstVal <= scaledValue) && (oRandom.nextDouble() < 0.5)){
                fstVal = scaledValue;
-               count ++;
             }
+            count ++;
          }
 
          scaledSignal.addComponent(new Signal(component.getTime(), fstVal));
@@ -75,7 +92,7 @@ public class SelectionModifier extends SignalModifier {
       }
 
 
-      System.out.println("Selected: " + count);
+      LoggingManager.logField("SelectedSNPs", Integer.toString(count));
       return scaledSignal;
    }
    
@@ -118,7 +135,13 @@ public class SelectionModifier extends SignalModifier {
       }
       
       if (options.getOption("haplotypeSize") != null) {
-         haplotypeSize = Double.valueOf(options.getOption("haplotypeSize"));
+         haplotypeNormalizedSize = Float.valueOf(options.getOption("haplotypeSize"));
+      }
+
+      if (options.getOption("numberOfBases") != null) {
+         numberOfBases = Double.valueOf(options.getOption("numberOfBases")).longValue();
+      } else {
+         throw new WrongOptionsException("Missing option: numberOfSnps:Integer");
       }
 
    }

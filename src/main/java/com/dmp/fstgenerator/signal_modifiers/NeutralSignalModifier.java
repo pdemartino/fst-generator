@@ -1,6 +1,7 @@
 package com.dmp.fstgenerator.signal_modifiers;
 
 import com.dmp.fstgenerator.signal.Signal;
+import com.dmp.fstgenerator.utils.LoggingManager;
 import com.dmp.fstgenerator.signal_modifiers.options.ModifierOptions;
 import com.dmp.fstgenerator.signal_modifiers.options.WrongOptionsException;
 import java.util.ArrayList;
@@ -27,7 +28,7 @@ public class NeutralSignalModifier extends SignalModifier {
          snpVal = value(snpVal);
          signal.addComponent(new Signal(new Double(snpPos), snpVal));
       }
-      System.out.println("SNPs: " + snps);
+      LoggingManager.logField("SNPs",Integer.toString(snps));
       return signal;
    }
 
