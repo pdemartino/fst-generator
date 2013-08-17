@@ -52,8 +52,6 @@ public class NeutralSignalModifier extends SignalModifier {
       int distance = 0;
       int rand = oRandom.nextInt(100);
       
-      
-      
       for (ArrayList<Integer> percentileConf : distancePercentile){
          if (rand <= percentileConf.get(0)){
             distance = percentileConf.get(1) 

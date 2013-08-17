@@ -24,7 +24,7 @@ public class SelectionModifier extends SignalModifier {
 
    @Override
    public Signal apply(Signal signal) {
-
+      LoggingManager.logField("SelFst",Double.toString(selectionFstValue));
 
       // Insert selected SNP
       int position = snpIntegerPosition(selectionPosition, signal);
@@ -66,23 +66,11 @@ public class SelectionModifier extends SignalModifier {
       for (Signal component : inputSignal) {
          double fstVal = component.getValue();
          double distance = Math.abs(component.getTime() - selectionPosition);
-         
+
          if (distance <= haplotypeHalfSize) {
             double normalizedDistance = SAMath.minMaxNormalization(distance, minDistance, maxDistance);
-            double scaledValue = selectionFstValue;
-            
-            // apply scaling factor based on distance from selected SNP
-            //double scalingFactor = Math.pow(1 - SAMath.minMaxNormalization(distance, minDistance, maxDistance), 4);
-            double scalingFactor = Math.pow(1 - normalizedDistance,64);
-            scalingFactor =  (1 - normalizedDistance) * oRandom.nextDouble();
-            scaledValue *= scalingFactor;
-
-            // apply deviation
-            int sign = oRandom.nextDouble() > 0.5 ? 1 : -1;
-            //scaledValue += sign * (oRandom.nextDouble());
-            
-            if ((fstVal <= scaledValue) && (oRandom.nextDouble() < 0.5)){
-               fstVal = scaledValue;
+            if ((oRandom.nextDouble()< 0.2)){
+               fstVal = Math.max(fstVal,selectionFstValue * scalingFactor(normalizedDistance));
             }
             count ++;
          }
@@ -95,8 +83,14 @@ public class SelectionModifier extends SignalModifier {
       LoggingManager.logField("SelectedSNPs", Integer.toString(count));
       return scaledSignal;
    }
-   
-  
+
+   private double scalingFactor(double normalizedDistance){
+      double scalingFactor;
+
+      scalingFactor = Math.pow(1 - normalizedDistance,10);
+      //scalingFactor *= oRandom.nextDouble();
+      return scalingFactor;
+   }
 
    private static Map<String, Double> getDistanceFactors(Signal signal, int selection) {
       Map<String, Double> distanceFactors = new HashMap<String, Double>();
@@ -133,7 +127,7 @@ public class SelectionModifier extends SignalModifier {
       if (options.getOption("variance") != null) {
          variance = Double.valueOf(options.getOption("variance"));
       }
-      
+
       if (options.getOption("haplotypeSize") != null) {
          haplotypeNormalizedSize = Float.valueOf(options.getOption("haplotypeSize"));
       }
