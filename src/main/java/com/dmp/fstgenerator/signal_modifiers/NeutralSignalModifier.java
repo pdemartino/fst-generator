@@ -4,6 +4,7 @@ import com.dmp.fstgenerator.signal.Signal;
 import com.dmp.fstgenerator.utils.LoggingManager;
 import com.dmp.fstgenerator.signal_modifiers.options.ModifierOptions;
 import com.dmp.fstgenerator.signal_modifiers.options.WrongOptionsException;
+import com.dmp.fstgenerator.utils.SAMath;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -21,12 +22,14 @@ public class NeutralSignalModifier extends SignalModifier {
 
       double snpVal = 1;
       double snpPos = startingPosition;
+      double distaceFromPrev = 0;
       int snps = 0;
       while (snpPos - startingPosition < numberOfBases) {
          snps++;
+         double prevPos = snpPos;
          snpPos += distance();
          snpVal = random.nextDouble() * 0.45
-                 + snpVal * random.nextDouble();
+                 + snpVal * SAMath.minMaxNormalization(snpPos-prevPos,0,140000);
          signal.addComponent(new Signal(new Double(snpPos), snpVal));
       }
       LoggingManager.logField("SNPs", Integer.toString(snps));

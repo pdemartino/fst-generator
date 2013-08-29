@@ -16,7 +16,7 @@ import java.util.Random;
 public class SelectionModifier extends SignalModifier {
 
    private Random random = new Random();
-   private double selectionPosition;
+   private long selectionPosition;
    private float haplotypeNormalizedSize = 0.01f;
    private double selectionFstValue = 0.3;
    private double variance = 0.086;
@@ -27,18 +27,18 @@ public class SelectionModifier extends SignalModifier {
       LoggingManager.logField("SelFst",Double.toString(selectionFstValue));
 
       // Insert selected SNP
-      int position = snpIntegerPosition(selectionPosition, signal);
-      Signal snp = signal.get(position);
+      System.out.println("Selection in " + selectionPosition);
+      Signal snp = signal.get(selectionPosition);
 
       if (snp == null) {
-         snp = new Signal((double) position, selectionFstValue);
+         snp = new Signal((double) selectionPosition, selectionFstValue);
          signal.addComponent(snp);
       } else {
          snp.setValue(selectionFstValue);
       }
 
       // adjust all the  rest of the snps
-      return applyDistanceScalingFactor(signal, position);
+      return applyDistanceScalingFactor(signal, selectionPosition);
    }
 
    private static int snpIntegerPosition(double relativePosition, Signal signal) {
@@ -49,19 +49,21 @@ public class SelectionModifier extends SignalModifier {
       return (int) Math.round(doublePosition);
    }
 
-   private Signal applyDistanceScalingFactor(Signal inputSignal, int selectionPosition) {
+   private Signal applyDistanceScalingFactor(Signal inputSignal, long selectionPosition) {
       Signal scaledSignal = new Signal();
 
-      Map<String, Double> distanceFactors = getDistanceFactors(inputSignal, selectionPosition);
-      double minDistance = distanceFactors.get("minDistance");
-      double maxDistance = distanceFactors.get("maxDistance");
-      maxDistance = inputSignal.getTStop() - inputSignal.getTStart();
+      //Map<String, Double> distanceFactors = getDistanceFactors(inputSignal, selectionPosition);
+      //double minDistance = distanceFactors.get("minDistance");
+      //double maxDistance = distanceFactors.get("maxDistance");
+      double minDistance = 0;
+      double maxDistance = inputSignal.getTStop() - inputSignal.getTStart();
       System.out.println(String.format("minD: %s; maxD: %s", minDistance, maxDistance));
 
       int count = 0;
       int haplotypeHalfSize = Math.round((haplotypeNormalizedSize * numberOfBases) / 2);
-      LoggingManager.logField("SelectionStart" , Integer.toString((selectionPosition - haplotypeHalfSize)));
-      LoggingManager.logField("SelectionStop" , Integer.toString((selectionPosition + haplotypeHalfSize)));
+      System.out.println("Haplo Half Size: " + haplotypeHalfSize);
+      LoggingManager.logField("SelectionStart" , Long.toString((selectionPosition - haplotypeHalfSize)));
+      LoggingManager.logField("SelectionStop" , Long.toString((selectionPosition + haplotypeHalfSize)));
       LoggingManager.logField("SelectedBases",  Integer.toString((haplotypeHalfSize * 2)));
 
       
@@ -70,10 +72,11 @@ public class SelectionModifier extends SignalModifier {
          double distance = Math.abs(component.getTime() - selectionPosition);
 
          if (distance <= haplotypeHalfSize) {
-            double normalizedDistance = SAMath.minMaxNormalization(distance, minDistance, maxDistance);
+            double normalizedDistance = SAMath.minMaxNormalization(distance, 0, haplotypeHalfSize);
+            System.out.println(normalizedDistance);
 //            if ((oRandom.nextDouble() < 0.2)){
                double shift = 
-                       random.nextDouble() * 0.5
+                       random.nextDouble() * 0.005
                        * (random.nextBoolean() ? -1 : 1);
                fstVal = Math.max(fstVal,
                        selectionFstValue * scalingFactor(normalizedDistance) + shift);
@@ -122,12 +125,6 @@ public class SelectionModifier extends SignalModifier {
    public void setOptions(ModifierOptions options) throws WrongOptionsException {
       super.setOptions(options);
 
-      if (options.getOption("selectionPosition") != null) {
-         this.selectionPosition = Double.valueOf(options.getOption("selectionPosition"));
-      } else {
-         throw new WrongOptionsException("Missing Option: selectionPosition:Integer");
-      }
-
       if (options.getOption("selectionFstValue") != null) {
          this.selectionFstValue = Double.valueOf(options.getOption("selectionFstValue"));
       }
@@ -145,6 +142,11 @@ public class SelectionModifier extends SignalModifier {
       } else {
          throw new WrongOptionsException("Missing option: numberOfSnps:Integer");
       }
-
+      
+      if (options.getOption("selectionPosition") != null) {
+         selectionPosition = Math.round(Double.valueOf(options.getOption("selectionPosition")) * numberOfBases);
+      } else {
+         throw new WrongOptionsException("Missing Option: selectionPosition:Integer");
+      }
    }
 }
