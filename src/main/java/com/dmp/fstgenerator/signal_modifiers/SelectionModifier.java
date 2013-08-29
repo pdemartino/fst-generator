@@ -15,7 +15,7 @@ import java.util.Random;
  */
 public class SelectionModifier extends SignalModifier {
 
-   private Random oRandom = new Random();
+   private Random random = new Random();
    private double selectionPosition;
    private float haplotypeNormalizedSize = 0.01f;
    private double selectionFstValue = 0.3;
@@ -55,6 +55,8 @@ public class SelectionModifier extends SignalModifier {
       Map<String, Double> distanceFactors = getDistanceFactors(inputSignal, selectionPosition);
       double minDistance = distanceFactors.get("minDistance");
       double maxDistance = distanceFactors.get("maxDistance");
+      maxDistance = inputSignal.getTStop() - inputSignal.getTStart();
+      System.out.println(String.format("minD: %s; maxD: %s", minDistance, maxDistance));
 
       int count = 0;
       int haplotypeHalfSize = Math.round((haplotypeNormalizedSize * numberOfBases) / 2);
@@ -62,16 +64,21 @@ public class SelectionModifier extends SignalModifier {
       LoggingManager.logField("SelectionStop" , Integer.toString((selectionPosition + haplotypeHalfSize)));
       LoggingManager.logField("SelectedBases",  Integer.toString((haplotypeHalfSize * 2)));
 
-
+      
       for (Signal component : inputSignal) {
          double fstVal = component.getValue();
          double distance = Math.abs(component.getTime() - selectionPosition);
 
          if (distance <= haplotypeHalfSize) {
             double normalizedDistance = SAMath.minMaxNormalization(distance, minDistance, maxDistance);
-            if ((oRandom.nextDouble()< 0.2)){
-               fstVal = Math.max(fstVal,selectionFstValue * scalingFactor(normalizedDistance));
-            }
+//            if ((oRandom.nextDouble() < 0.2)){
+               double shift = 
+                       random.nextDouble() * 0.5
+                       * (random.nextBoolean() ? -1 : 1);
+               fstVal = Math.max(fstVal,
+                       selectionFstValue * scalingFactor(normalizedDistance) + shift);
+  //          }
+            
             count ++;
          }
 
@@ -87,7 +94,8 @@ public class SelectionModifier extends SignalModifier {
    private double scalingFactor(double normalizedDistance){
       double scalingFactor;
 
-      scalingFactor = Math.pow(1 - normalizedDistance,10);
+      scalingFactor = 1 - Math.pow(normalizedDistance, 2);
+      //scalingFactor = Math.pow(1 - normalizedDistance,10);
       //scalingFactor *= oRandom.nextDouble();
       return scalingFactor;
    }

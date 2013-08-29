@@ -11,7 +11,7 @@ import java.util.Random;
 
 public class NeutralSignalModifier extends SignalModifier {
 
-   private Random oRandom = new Random();
+   private Random random = new Random();
    private long numberOfBases;
 
    @Override
@@ -22,44 +22,46 @@ public class NeutralSignalModifier extends SignalModifier {
       double snpVal = 1;
       double snpPos = startingPosition;
       int snps = 0;
-      while (snpPos - startingPosition < numberOfBases){
+      while (snpPos - startingPosition < numberOfBases) {
          snps++;
          snpPos += distance();
-         snpVal = value(snpVal);
+         snpVal = random.nextDouble() * 0.45
+                 + snpVal * random.nextDouble();
          signal.addComponent(new Signal(new Double(snpPos), snpVal));
       }
-      LoggingManager.logField("SNPs",Integer.toString(snps));
+      LoggingManager.logField("SNPs", Integer.toString(snps));
       return signal;
    }
-
    /**
     * Generate random distance based on the ones observed in chr1
     *
     * @return
     */
-   private static LinkedList<ArrayList<Integer>> distancePercentile = 
-           new LinkedList<ArrayList<Integer>> () {{
-              // percentileIndex, minDistance, maxDistanceOffset
-              add(new ArrayList<Integer>(Arrays.asList(30,0,210)));
-              add(new ArrayList<Integer>(Arrays.asList(50,200,250)));
-              add(new ArrayList<Integer>(Arrays.asList(90,500,1200)));
-              add(new ArrayList<Integer>(Arrays.asList(95,2250,1500)));
-              add(new ArrayList<Integer>(Arrays.asList(99,3000,3500)));
-              add(new ArrayList<Integer>(Arrays.asList(100,6000,140000)));
-           }};
+   private static LinkedList<ArrayList<Integer>> distances =
+           new LinkedList<ArrayList<Integer>>() {
+              {
+                 // perc, min distance, max distance
+                 add(new ArrayList<Integer>(Arrays.asList(45, 0, 2)));
+                 add(new ArrayList<Integer>(Arrays.asList(72, 2, 4)));
+                 add(new ArrayList<Integer>(Arrays.asList(87, 5, 6)));
+                 add(new ArrayList<Integer>(Arrays.asList(92, 6, 8)));
+                 add(new ArrayList<Integer>(Arrays.asList(94, 8, 10)));
+                 add(new ArrayList<Integer>(Arrays.asList(99, 10, 20)));
+                 add(new ArrayList<Integer>(Arrays.asList(100, 20, 140)));
+              }
+           };
 
    private int distance() {
       int distance = 0;
-      int rand = oRandom.nextInt(100);
-      
-      for (ArrayList<Integer> percentileConf : distancePercentile){
-         if (rand <= percentileConf.get(0)){
-            distance = percentileConf.get(1) 
-                    + oRandom.nextInt(percentileConf.get(2));
+      int prob = random.nextInt(100);
+      for (ArrayList<Integer> dist : distances) {
+         if (prob <= dist.get(0)) {
+            int min = dist.get(1);
+            int delta = dist.get(2) - min;
+            distance = (min + random.nextInt(delta)) * 1000;
             break;
          }
       }
-      
       return distance;
    }
 
@@ -72,16 +74,16 @@ public class NeutralSignalModifier extends SignalModifier {
    private double value(double prev) {
 
       // Consirer the previous SNP value
-      return oRandom.nextDouble()
+      return random.nextDouble()
               * valueMult()
-              * (prev + oRandom.nextDouble());
+              * (prev + random.nextDouble());
 
    }
-   
-    public double valueMult() {
+
+   public double valueMult() {
       double mult = 1.;
 
-      int rand = oRandom.nextInt(100);
+      int rand = random.nextInt(100);
       if (rand <= 30) {
          mult = 0.035;
       } else if (rand <= 50) {
