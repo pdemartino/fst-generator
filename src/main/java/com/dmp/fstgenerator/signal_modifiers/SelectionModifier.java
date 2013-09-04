@@ -41,27 +41,11 @@ public class SelectionModifier extends SignalModifier {
       return applyDistanceScalingFactor(signal, selectionPosition);
    }
 
-   private static int snpIntegerPosition(double relativePosition, Signal signal) {
-      double min = signal.getTStart();
-      double max = signal.getTStop();
-
-      double doublePosition = min + (max - min) * relativePosition;
-      return (int) Math.round(doublePosition);
-   }
-
    private Signal applyDistanceScalingFactor(Signal inputSignal, long selectionPosition) {
       Signal scaledSignal = new Signal();
 
-      //Map<String, Double> distanceFactors = getDistanceFactors(inputSignal, selectionPosition);
-      //double minDistance = distanceFactors.get("minDistance");
-      //double maxDistance = distanceFactors.get("maxDistance");
-      double minDistance = 0;
-      double maxDistance = inputSignal.getTStop() - inputSignal.getTStart();
-      System.out.println(String.format("minD: %s; maxD: %s", minDistance, maxDistance));
-
       int count = 0;
       int haplotypeHalfSize = Math.round((haplotypeNormalizedSize * numberOfBases) / 2);
-      System.out.println("Haplo Half Size: " + haplotypeHalfSize);
       LoggingManager.logField("SelectionStart" , Long.toString((selectionPosition - haplotypeHalfSize)));
       LoggingManager.logField("SelectionStop" , Long.toString((selectionPosition + haplotypeHalfSize)));
       LoggingManager.logField("SelectedBases",  Integer.toString((haplotypeHalfSize * 2)));
@@ -73,15 +57,10 @@ public class SelectionModifier extends SignalModifier {
 
          if (distance <= haplotypeHalfSize) {
             double normalizedDistance = SAMath.minMaxNormalization(distance, 0, haplotypeHalfSize);
-            System.out.println(normalizedDistance);
-//            if ((oRandom.nextDouble() < 0.2)){
-               double shift = 
-                       random.nextDouble() * 0.005
-                       * (random.nextBoolean() ? -1 : 1);
-               fstVal = Math.max(fstVal,
-                       selectionFstValue * scalingFactor(normalizedDistance) + shift);
-  //          }
-            
+            double scalingFactor = 1 - Math.pow(normalizedDistance, 2);
+            double shift = random.nextDouble() * 0.005
+               * (random.nextBoolean() ? -1 : 1);
+            fstVal = Math.max(fstVal, selectionFstValue * scalingFactor + shift);
             count ++;
          }
 
@@ -89,18 +68,8 @@ public class SelectionModifier extends SignalModifier {
 
       }
 
-
       LoggingManager.logField("SelectedSNPs", Integer.toString(count));
       return scaledSignal;
-   }
-
-   private double scalingFactor(double normalizedDistance){
-      double scalingFactor;
-
-      scalingFactor = 1 - Math.pow(normalizedDistance, 2);
-      //scalingFactor = Math.pow(1 - normalizedDistance,10);
-      //scalingFactor *= oRandom.nextDouble();
-      return scalingFactor;
    }
 
    private static Map<String, Double> getDistanceFactors(Signal signal, int selection) {
